@@ -161,8 +161,10 @@ class WatermarkCommand extends UserCommand
                     $img = $manager->make("https://api.telegram.org/file/bot" . getenv('BOT_API_TOKEN') . "/" . $photo_obj->result->file_path);
 
                     //Write the text to the image
-                    $img->text($watermark, 0, 0, function($font) {
-                        $font->color(array(255, 255, 255, 0.5));
+                    $img->text($watermark, 1000, 0, function($font) {
+                        $font->size(500);
+                        $font->color('#fff');
+                        $font->valign('bottom');
                     });
 
                     //Make sure image directory exists
@@ -175,11 +177,11 @@ class WatermarkCommand extends UserCommand
                     $img->save(app()->basePath('public/images/' . $filename));
 
                     //Send image to telegram
-                    $data['photo'] = getenv('TELEGRAM_REQUESTS_URL') . '/watermark-bot/public/images/' . $filename;
+                    $data['photo'] = getenv('TELEGRAM_REQUESTS_URL') . '/public/images/' . $filename;
                     $result = Request::sendPhoto($data);
 
                     //Remove image
-                    //unlink(app()->basePath('public/images/' . $filename));
+                    unlink(app()->basePath('public/images/' . $filename));
 
                     //Update command state in conversation
                     $notes['watermark']['state'] = 1;

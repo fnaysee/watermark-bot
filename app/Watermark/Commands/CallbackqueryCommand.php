@@ -87,13 +87,15 @@ class CallbackqueryCommand extends SystemCommand
         $conv = new Conversation($this->chat_id, $this->chat_id, 'watermark');
         $notes = &$conv->notes;
 
+        $string = $this->message->getText()? $this->message->getText() : $this->message->getCaption();
+
         $photo = $this->message->getPhoto();
         $photo = end($photo);
 
         //Changing state of watermark command
         //state 2 in there adds the watermark to the image
         $notes['watermark']['state'] = 2;
-        $notes['watermark']['message_details'] = ['chat_id' => $this->chat_id, 'file_id' => $photo->file_id, 'string' => $this->message->getText()];
+        $notes['watermark']['message_details'] = ['chat_id' => $this->chat_id, 'file_id' => $photo->file_id, 'string' => $string];
         $conv->update();
 
         $data = [
