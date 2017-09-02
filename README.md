@@ -6,7 +6,7 @@ This is an example bot written on Lumen (micro framework based on laravel) and u
 # Installation is easy:
 1- Download the repo with git or zip.
 
-2- Run composer update to download dependencies.
+2- Run composer update in the project directory to download dependencies.
 
 3- Edit .env file at the root with your bot details (make sure you change the TELEGRAM_REQUEST_URL to your own address).
 
@@ -15,6 +15,9 @@ This is an example bot written on Lumen (micro framework based on laravel) and u
 5- In your browser run https://example.com/public/set-webhook
 
 6- Now in your telegram client open your bot page and start using it.
+
+# How it works
+Simply send an image or forward it to the bot and it ask you for the watermark string to be added to the image, after sending the string it sends you the edited version of the image.
 
 # Notes
 
