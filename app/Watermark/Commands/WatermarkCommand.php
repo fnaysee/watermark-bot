@@ -160,9 +160,12 @@ class WatermarkCommand extends UserCommand
                     $manager = new ImageManager();
                     $img = $manager->make("https://api.telegram.org/file/bot" . getenv('BOT_API_TOKEN') . "/" . $photo_obj->result->file_path);
 
+                    $x = (int)300;
+                    $y = (int)500;
                     //Write the text to the image
-                    $img->text($watermark, 0, 100, function($font) {
-                        $font->size(500);
+                    $img->text($watermark, $x, $y, function($font) {
+                        $font->file(app()->basePath('public/fonts/OpenSans-Regular.ttf'));
+                        $font->size(30);
                         $font->color('#fff');
                     });
 

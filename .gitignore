@@ -1,8 +1,10 @@
+/.vs
 /vendor
 /.idea
 Homestead.json
 Homestead.yaml
 .env
-/.vs
 watermark-bot.phpproj
 watermark-bot.sln
+watermark-bot.phpproj.user
+.gitignore
