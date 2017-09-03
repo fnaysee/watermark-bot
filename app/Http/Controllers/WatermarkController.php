@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
-use Illuminate\Http\Request;
+use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Telegram;
+use Longman\TelegramBot\TelegramLog;
 
 class WatermarkController extends BaseController
 {
@@ -16,14 +18,14 @@ class WatermarkController extends BaseController
     {
         $bot_api_key  = getenv('BOT_API_TOKEN');
         $bot_username = getenv('BOT_USERNAME');
-        $hook_url = getenv('TELEGRAM_REQUESTS_URL') . '/public/handle-telegram-updates';
+        $hook_url     = getenv('TELEGRAM_REQUESTS_URL') . '/handle-telegram-updates';
 
         try {
             // Create Telegram API object
-            $telegram = new \Longman\TelegramBot\Telegram($bot_api_key, $bot_username);
+            $telegram = new Telegram($bot_api_key, $bot_username);
 
             //Set verify to false for test in local, you can remove or comment it
-            \Longman\TelegramBot\Request::setClient(new \GuzzleHttp\Client([
+            Request::setClient(new \GuzzleHttp\Client([
                 'base_uri' => 'https://api.telegram.org',
                 'verify'   => false,
             ]));
@@ -31,27 +33,23 @@ class WatermarkController extends BaseController
             // Set webhook
             $result = $telegram->setWebhook($hook_url);
 
-            if ($result->isOk())
-            {
+            if ($result->isOk()) {
                 echo $result->getDescription();
             }
-        }
-        catch (Longman\TelegramBot\Exception\TelegramException $e)
-        {
+        } catch (TelegramException $e) {
             echo $e->getMessage();
         }
     }
 
     public function handleTelegramUpdates()
     {
-        if(empty(getenv('BOT_API_TOKEN')))
-        {
+        if (empty(getenv('BOT_API_TOKEN'))) {
             throw new \Exception('Bot token is required', 500);
         }
 
-        $telegram = new \Longman\TelegramBot\Telegram(getenv('BOT_API_TOKEN'), getenv('BOT_USERNAME'));
+        $telegram = new Telegram(getenv('BOT_API_TOKEN'), getenv('BOT_USERNAME'));
 
-        \Longman\TelegramBot\Request::setClient(new \GuzzleHttp\Client([
+        Request::setClient(new \GuzzleHttp\Client([
             'base_uri' => 'https://api.telegram.org',
             'verify'   => false,
         ]));
@@ -59,28 +57,31 @@ class WatermarkController extends BaseController
         //Adding our commands path to default commands paths
         //We placed all kind of commands in one directory
         $telegram->addCommandsPaths([
-            app()->path('/Watermark/Commands/')
+            app()->path() . '/Watermark/Commands',
         ]);
 
         //Enable requests limiter, to prevent attack like requests
         $telegram->enableLimiter();
 
+        TelegramLog::initDebugLog(storage_path('logs/debug.log'));
+        TelegramLog::initErrorLog(storage_path('logs/error.log'));
+        TelegramLog::initUpdateLog(storage_path('logs/update.log'));
+
         //from .env file at root
-        $mysql_credentials = [
-           'host'     => getenv('BOT_DB_HOST'),
-           'user'     => getenv('BOT_DB_USERNAME'),
-           'password' => getenv('BOT_DB_PASSWORD'),
-           'database' => getenv('BOT_DB_DATABASE'),
-        ];
+        $telegram->enableMySql([
+            'host'     => getenv('BOT_DB_HOST'),
+            'user'     => getenv('BOT_DB_USERNAME'),
+            'password' => getenv('BOT_DB_PASSWORD'),
+            'database' => getenv('BOT_DB_DATABASE'),
+        ]);
 
-        $telegram->enableMySql($mysql_credentials);
+        try {
+            // Make sure temporary image directory exists.
+            @mkdir(storage_path('images'));
 
-        try
-        {
             $telegram->handle();
-        }
-        catch (\Exception $exception)
-        {
+        } catch (\Exception $exception) {
+            TelegramLog::error($exception);
             var_dump($exception->getMessage());
         }
     }

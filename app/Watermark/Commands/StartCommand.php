@@ -7,14 +7,18 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
-use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Commands\SystemCommand;
+use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\Request;
+
 /**
- * User "/keyboard" command
+ * System "/start" command
  * Start command is our starting position to show the menu,
  * because telegram show a start button to anyone who wants work with our bot for first time
  */
@@ -24,80 +28,69 @@ class StartCommand extends SystemCommand
      * @var string
      */
     protected $name = 'start';
+
     /**
      * @var string
      */
     protected $description = 'Show a custom keyboard with reply markup';
+
     /**
      * @var string
      */
     protected $usage = '/start';
+
     /**
      * @var string
      */
-    protected $version = '1.0.0';
+    protected $version = '1.1.0';
+
+//    protected $private_only = true;
+
     /**
-     * Command execute method
+     * Command execute method.
      *
-     * @return \Longman\TelegramBot\Entities\ServerResponse
-     * @throws \Longman\TelegramBot\Exception\TelegramException
+     * @return ServerResponse
+     * @throws TelegramException
      */
-    public function execute()
+    public function execute(): ServerResponse
     {
-        $msg = $this->getMessage();
+        $message = $this->getMessage();
 
-        $chat    = $msg->getChat();
-        $user    = $msg->getFrom();
-        $text    = trim($msg->getText(true));
+        $text    = trim($message->getText(true));
+        $chat    = $message->getChat();
         $chat_id = $chat->getId();
-        $user_id = $user->getId();
+        $user_id = $message->getFrom()->getId();
 
-        if(empty($msg))
-        {
+        // Only answer requests from private chats
+        if (!$chat->isPrivateChat()) {
             return Request::emptyResponse();
         }
 
-        //Only answer requests from private chats
-        if ($chat->isGroupChat() || $chat->isSuperGroup() || $chat->isChannel() || $msg->getLeftChatMember())
-        {
-            return Request::emptyResponse();
+        // Reset the /watermark conversation.
+        if (($c = new Conversation($user_id, $chat_id, 'watermark'))->exists()) {
+            $c->notes = [];
+            $c->update();
         }
-
-        //Conversation start
-        $this->conversation = new Conversation($user_id, $chat_id, $this->getName());
-        $startcmd = &$this->conversation->startcmd;
 
         $commands = [
-            'watermark'   => 'Add watermark',
+            'Add watermark' => 'watermark',
         ];
 
-        //Detecting command from received text (from normal keyboard)
-        foreach ($commands as $cmd => $txt)
-        {
-        	if($text == $txt)
-            {
-                $this->conversation = new Conversation($user_id, $chat_id, $cmd);
-                $this->conversation->update();
-                return $this->telegram->executeCommand($cmd);
-            }
+        // Detecting command from received text (from normal keyboard)
+        if ($cmd = $commands[$text] ?? null) {
+            return $this->telegram->executeCommand($cmd);
         }
 
-        $response_message = 'Welcome to watermark adder bot';
-
-        $keyboard = new Keyboard([
-            ['text' => 'Add watermark'],
-        ]);
-
-        $keyboard->setResizeKeyboard(true)
-            ->setOneTimeKeyboard(true)
-            ->setSelective(false);
-
-        $data = [
+        // Send the welcome text!
+        return Request::sendMessage([
             'chat_id'      => $chat_id,
-            'text'         => $response_message,
-            'reply_markup' => $keyboard,
-        ];
-
-        return Request::sendMessage($data);
+            'text'         => 'Welcome to watermark adder bot',
+            'reply_markup' => (new Keyboard([
+                'Add watermark',
+            ]))
+                ->setResizeKeyboard(true)
+                ->setOneTimeKeyboard(true)
+                ->setSelective(false),
+        ]);
     }
 }
