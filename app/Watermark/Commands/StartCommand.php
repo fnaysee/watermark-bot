@@ -44,8 +44,6 @@ class StartCommand extends SystemCommand
      */
     protected $version = '1.1.0';
 
-//    protected $private_only = true;
-
     /**
      * Command execute method.
      *

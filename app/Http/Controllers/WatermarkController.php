@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
+use GuzzleHttp\Client;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Request;
 use Longman\TelegramBot\Telegram;
 use Longman\TelegramBot\TelegramLog;
 
@@ -25,7 +28,7 @@ class WatermarkController extends BaseController
             $telegram = new Telegram($bot_api_key, $bot_username);
 
             //Set verify to false for test in local, you can remove or comment it
-            Request::setClient(new \GuzzleHttp\Client([
+            Request::setClient(new Client([
                 'base_uri' => 'https://api.telegram.org',
                 'verify'   => false,
             ]));
@@ -44,12 +47,12 @@ class WatermarkController extends BaseController
     public function handleTelegramUpdates()
     {
         if (empty(getenv('BOT_API_TOKEN'))) {
-            throw new \Exception('Bot token is required', 500);
+            throw new Exception('Bot token is required', 500);
         }
 
         $telegram = new Telegram(getenv('BOT_API_TOKEN'), getenv('BOT_USERNAME'));
 
-        Request::setClient(new \GuzzleHttp\Client([
+        Request::setClient(new Client([
             'base_uri' => 'https://api.telegram.org',
             'verify'   => false,
         ]));
@@ -80,7 +83,7 @@ class WatermarkController extends BaseController
             @mkdir(storage_path('images'));
 
             $telegram->handle();
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             TelegramLog::error($exception);
             var_dump($exception->getMessage());
         }
