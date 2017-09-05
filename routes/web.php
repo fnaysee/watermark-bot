@@ -16,5 +16,7 @@ $app->get('/', function () use ($app) {
 });
 
 $app->get('/set-webhook', 'WatermarkController@setWebhookInfo');
+
+$app->get('/handle-telegram-updates', 'WatermarkController@handleTelegramUpdates');
 $app->post('/handle-telegram-updates', 'WatermarkController@handleTelegramUpdates');
 
