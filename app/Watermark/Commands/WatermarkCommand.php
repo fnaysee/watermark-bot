@@ -181,7 +181,7 @@ class WatermarkCommand extends UserCommand
 
         // Write the text to the image.
         $img->text($watermark, $x, $y, function (AbstractFont $font) use ($img) {
-            $font->file(resource_path('fonts/OpenSans-Regular.ttf'));
+            $font->file(resource_path('fonts/tahoma.ttf'));
             $font->size(ceil($img->height() * 0.1));
             $font->color('#fff');
         });
@@ -250,5 +250,26 @@ class WatermarkCommand extends UserCommand
             ->setResizeKeyboard(true)
             ->setOneTimeKeyboard(true)
             ->setSelective(false);
+    }
+
+    /**
+     * Multi byte safe reverse string
+     * @param $string
+     * @param null $encoding
+     * @return string
+     */
+    public function mb_strrev ($string, $encoding = null): string
+    {
+        if ($encoding === null) {
+            $encoding = mb_detect_encoding($string);
+        }
+
+        $length   = mb_strlen($string, $encoding);
+        $reversed = '';
+        while ($length-- > 0) {
+            $reversed .= mb_substr($string, $length, 1, $encoding);
+        }
+
+        return $reversed;
     }
 }
