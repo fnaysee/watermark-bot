@@ -10,9 +10,9 @@ This is an example bot written on Lumen (micro framework based on laravel) and u
 
 3- Edit .env file at the root with your bot details (make sure you change the TELEGRAM_REQUEST_URL to your own address).
 
-4- Open vendor/longman/telegram-bot and import structure.sql to your database.
+4- Open vendor/longman/telegram-bot/ directory and import structure.sql to your database.
 
-5- In your browser run https://example.com/set-webhook
+5- In your browser run https://url-to-script-root/public/set-webhook
 
 6- Now in your telegram client open your bot page and start using it.
 
